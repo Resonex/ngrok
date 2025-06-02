@@ -2,10 +2,10 @@
 
 # Script to install ngrok in Termux with authtoken configuration
 # Credits: Resonex for the original script and banner inspiration
-# Version: 1.1.3
+# Version: 1.1.4
 
-# Disable debug mode
-set +x
+# Debug mode (set DEBUG=1 to enable)
+[ "$DEBUG" = "1" ] && set -x
 
 # Exit on error
 set -e
@@ -28,20 +28,22 @@ echo "Ngrok installation log - $(date)" > "$LOG_FILE"
 
 # Advanced loading animation with percentage
 loading_animation() {
-    local pid=$1
+    local duration=$1
     local message=$2
     local delay=0.15
     local anim_chars="⠋⠙⠹⠸⠼⠴⠦⠧"
     local progress=0
     local anim_index=0
+    local elapsed=0
 
-    while kill -0 $pid 2>/dev/null; do
+    while [ $elapsed -lt $duration ]; do
         local anim_char=${anim_chars:$anim_index:1}
         printf "\r${LIGHT_CYAN}%-25s [%3d%%] %s${NC}" "$message" "$progress" "$anim_char"
         ((anim_index=(anim_index + 1) % 8))
-        ((progress+=4))
+        ((progress+=10))
         [ $progress -gt 100 ] && progress=0
         sleep $delay
+        elapsed=$(($elapsed + 1))
     done
     printf "\r${LIGHT_CYAN}%-25s [100%%] ✓${NC}\n" "$message"
 }
@@ -49,11 +51,7 @@ loading_animation() {
 # Check internet connectivity
 check_internet() {
     echo -e "${CYAN}Checking internet connection...${NC}" | tee -a "$LOG_FILE"
-    curl -s --connect-timeout 5 https://google.com >/dev/null 2>&1 &
-    pid=$!
-    loading_animation $pid "Testing network"
-    wait $pid
-    if [ $? -ne 0 ]; then
+    if ! curl -s --connect-timeout 5 https://google.com >/dev/null 2>>"$LOG_FILE"; then
         echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
         echo -e "${RED}║${NC} ${WHITE}Error: No internet connection detected!${NC}   ${RED}║${NC}"
         echo -e "${RED}║${NC} ${WHITE}Please check your network and try again.${NC} ${RED}║${NC}"
@@ -61,26 +59,49 @@ check_internet() {
         echo "Internet check failed" >> "$LOG_FILE"
         exit 1
     fi
+    loading_animation 10 "Testing network"
+}
+
+# Check package manager status
+check_pkg_manager() {
+    echo -e "${CYAN}Checking package manager...${NC}" | tee -a "$LOG_FILE"
+    if [ -f "/data/data/com.termux/files/usr/var/lib/dpkg/lock-frontend" ]; then
+        echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
+        echo -e "${RED}║${NC} ${WHITE}Error: Package manager is locked!${NC}        ${RED}║${NC}"
+        echo -e "${RED}║${NC} ${WHITE}Run 'rm /data/data/com.termux/files/usr/var/lib/dpkg/lock-frontend' as root.${NC} ${RED}║${NC}"
+        echo -e "${RED}╚════════════════════════════════════════════╝${NC}"
+        echo "Package manager locked" >> "$LOG_FILE"
+        exit 1
+    fi
+    if ! pkg update -y 2>>"$LOG_FILE" 1>/dev/null; then
+        echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
+        echo -e "${RED}║${NC} ${WHITE}Error: Package manager update failed!${NC}    ${RED}║${NC}"
+        echo -e "${RED}║${NC} ${WHITE}Check $LOG_FILE and ensure repositories are accessible.${NC} ${RED}║${NC}"
+        echo -e ${RED}╚════════════════════════════════════════════╝${NC}"
+        echo "Package manager update failed" >> "$LOG_FILE"
+        exit 1
+    fi
+    loading_animation 10 "Checking pkg manager"
 }
 
 # Clear terminal
 clear
 
 # Welcome screen with enhanced banner
-echo -e "${CYAN}╔══════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║${NC} ${WHITE}       NGROK TERMUX INSTALLER v1.1.3 by xAI        ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}╠══════════════════════════════════════════════════════╣${NC}"
-echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ███╗   ██╗ ██████╗ ██████╗  ██████╗ ██╗  ██╗   ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ████╗  ██║██╔════╝ ██╔══██╗██╔═══██╗██║ ██╔╝   ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ██╔██╗ ██║██║  ███╗██████╔╝██║   ██║█████╔╝    ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ██║╚██╗██║██║   ██║██╔══██╗██║   ██║██╔═██╗    ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ██║ ╚████║╚██████╔╝██║  ██║╚██████╔╝██║  ██╗   ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝   ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}╠══════════════════════════════════════════════════════╣${NC}"
-echo -e "${CYAN}║${NC} ${YELLOW}     Crafted by Resonex • Powered by xAI • 2025     ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}╚══════════════════════════════════════════════════════╝${NC}"
+echo -e "${CYAN}╔═══════════════════════════════════════════════════════╗${NC}"
+echo -e "${CYAN}║${NC}${WHITE}       NGROK TERMUX INSTALLER v1.1.0 by xAI       ${NC}${CYAN}║${NC}"
+echo -e "${CYAN}╠═══════════════════════════════════════════════╣${NC}"
+echo -e "${CYAN}║${NC}${LIGHT_CYAN}   ███╗   ██╗ ██████╗ ██████╗██╗ ███████╗███╗  ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}   ████╗  ██║██╔════╝ ██╔══██╗██╔═════╝███╗███╗  ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}${LIGHT_CYAN}   ██╔██╗ ██║██║  ███╗██████╗███╗███╗███║██║   ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ██║╚██╗██║██║   ██║██╔══██╗██║════╝███║██║   ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}  ${LIGHT_CYAN}   ██║ ╚████║╚██████╔╝██║  ██║╚══════╝╚═╝ ██╗  ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ╚═╝  ╚═══╝ ╚══════╝ ╚═╝  ╚═╝         ╚═════╝  ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}╠═══════════════════════════════════════════════╣${NC}"
+echo -e "${CYAN}║${NC} ${YELLOW}     Crafted by Resonex • Powered by xAI • 2025    ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}╚═══════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "${GREEN}Initializing ngrok installation...${NC} ${PURPLE}[10:46 AM WAT, June 02, 2025]${NC}" | tee -a "$LOG_FILE"
+echo -e "${GREEN}Initializing ngrok installation...${NC} ${PURPLE}[10:52 AM WAT, June 02, 2025]${NC}" | tee -a "$LOG_FILE"
 echo ""
 
 # Check internet before proceeding
@@ -95,18 +116,21 @@ if [ -z "$PREFIX" ] || [ ! -d "$PREFIX" ] || [ "$PREFIX" != "/data/data/com.term
     exit 1
 fi
 
-# Install dependencies silently
-for cmd in "update -y" "upgrade -y" "install wget unzip -y"; do
-    pkg $cmd >/dev/null 2>>"$LOG_FILE" &
-    pid=$!
-    loading_animation $pid "Preparing dependencies ($cmd)"
-    wait $pid || {
+# Check package manager
+check_pkg_manager
+
+# Install dependencies
+echo -e "${CYAN}Installing dependencies...${NC}" | tee -a "$LOG_FILE"
+for cmd in "upgrade -y" "install wget unzip -y"; do
+    echo "Running pkg $cmd" >> "$LOG_FILE"
+    if ! pkg $cmd 2>>"$LOG_FILE"; then
         echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
         echo -e "${RED}║${NC} ${WHITE}Error: Failed to $cmd!${NC}                  ${RED}║${NC}"
         echo -e "${RED}║${NC} ${WHITE}Check $LOG_FILE for details.${NC}          ${RED}║${NC}"
         echo -e "${RED}╚════════════════════════════════════════════╝${NC}"
         exit 1
-    }
+    fi
+    loading_animation 10 "Installing $cmd"
 done
 
 # Set variables
@@ -124,50 +148,47 @@ if [ ! -w "$HOME" ] || [ ! -w "$BIN_DIR" ]; then
 fi
 
 # Create installation directory
-mkdir -p "$INSTALL_DIR" 2>>"$LOG_FILE" || {
+if ! mkdir -p "$INSTALL_DIR" 2>>"$LOG_FILE"; then
     echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
     echo -e "${RED}║${NC} ${WHITE}Error: Failed to create $INSTALL_DIR!${NC}    ${RED}║${NC}"
     echo -e "${RED}╚════════════════════════════════════════════╝${NC}"
     exit 1
-}
+fi
+loading_animation 5 "Creating directory"
 
 # Download ngrok
-wget -q "$NGROK_URL" -O ngrok.zip 2>>"$LOG_FILE" &
-pid=$!
-loading_animation $pid "Downloading ngrok"
-wait $pid || {
+echo "Downloading ngrok from $NGROK_URL" >> "$LOG_FILE"
+if ! wget -q "$NGROK_URL" -O ngrok.zip 2>>"$LOG_FILE"; then
     echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
     echo -e "${RED}║${NC} ${WHITE}Error: Network failure during download!${NC}   ${RED}║${NC}"
     echo -e "${RED}║${NC} ${WHITE}Please check your network and try again.${NC} ${RED}║${NC}"
     echo -e "${RED}╚════════════════════════════════════════════╝${NC}"
     exit 1
-}
+fi
+loading_animation 10 "Downloading ngrok"
 
 # Unzip ngrok
-unzip ngrok.zip -d "$INSTALL_DIR" 2>>"$LOG_FILE" &
-pid=$!
-loading_animation $pid "Extracting ngrok"
-wait $pid || {
+if ! unzip ngrok.zip -d "$INSTALL_DIR" 2>>"$LOG_FILE"; then
     echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
     echo -e "${RED}║${NC} ${WHITE}Error: Failed to extract ngrok!${NC}          ${RED}║${NC}"
     echo -e "${RED}╚════════════════════════════════════════════╝${NC}"
     exit 1
-}
+fi
+loading_animation 5 "Extracting ngrok"
 
 # Set up ngrok binary
-mv "$INSTALL_DIR/ngrok" "$BIN_DIR/ngrok" 2>>"$LOG_FILE" && chmod +x "$BIN_DIR/ngrok" 2>>"$LOG_FILE" &
-pid=$!
-loading_animation $pid "Configuring ngrok"
-wait $pid || {
+if ! mv "$INSTALL_DIR/ngrok" "$BIN_DIR/ngrok" 2>>"$LOG_FILE" || ! chmod +x "$BIN_DIR/ngrok" 2>>"$LOG_FILE"; then
     echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
     echo -e "${RED}║${NC} ${WHITE}Error: Failed to configure ngrok!${NC}        ${RED}║${NC}"
     echo -e "${RED}╚════════════════════════════════════════════╝${NC}"
     exit 1
-}
+fi
+loading_animation 5 "Configuring ngrok"
 
 # Clean up
 rm ngrok.zip 2>>"$LOG_FILE"
 rm -rf "$INSTALL_DIR" 2>>"$LOG_FILE"
+loading_animation 5 "Cleaning up"
 
 # Prompt for ngrok authtoken
 echo -e "${CYAN}╔═════════════════ Authtoken Setup ═════════════════╗${NC}"
@@ -176,16 +197,14 @@ echo -e "${CYAN}║${NC} ${PURPLE}Visit https://dashboard.ngrok.com for your tok
 echo -e "${CYAN}╚═══════════════════════════════════════════════════╝${NC}"
 read -p "$(echo -e ${YELLOW}Enter authtoken [Enter to skip]:${NC} ) " NGROK_AUTH
 if [ -n "$NGROK_AUTH" ]; then
-    "$BIN_DIR/ngrok" authtoken "$NGROK_AUTH" 2>>"$LOG_FILE" &
-    pid=$!
-    loading_animation $pid "Applying authtoken"
-    wait $pid || {
+    if ! "$BIN_DIR/ngrok" authtoken "$NGROK_AUTH" 2>>"$LOG_FILE"; then
         echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
         echo -e "${RED}║${NC} ${WHITE}Error: Failed to apply authtoken!${NC}       ${RED}║${NC}"
         echo -e "${RED}║${NC} ${WHITE}Check network or token validity.${NC}       ${RED}║${NC}"
         echo -e "${RED}╚════════════════════════════════════════════╝${NC}"
         exit 1
-    }
+    fi
+    loading_animation 5 "Applying authtoken"
     echo -e "${GREEN}Authtoken applied successfully!${NC}"
 else
     echo -e "${RED}No authtoken provided. Set it later with:${NC}"
@@ -194,7 +213,7 @@ fi
 echo ""
 
 # Verify installation
-if command -v ngrok >/dev/null 2>&1 && "$BIN_DIR/ngrok" --version 2>/dev/null | grep -q "ngrok"; then
+if command -v ngrok >/dev/null 2>&1 && "$BIN_DIR/ngrok" --version 2>>"$LOG_FILE" | grep -q "ngrok"; then
     echo -e "${CYAN}╔════════════════ Installation Success ══════════════╗${NC}"
     echo -e "${CYAN}║${NC} ${LIGHT_GREEN}ngrok installed successfully!${NC}                    ${CYAN}║${NC}"
     echo -e "${CYAN}║${NC} ${CYAN}Start ngrok by running 'ngrok' in the terminal${NC} ${CYAN}║${NC}"
@@ -202,10 +221,10 @@ if command -v ngrok >/dev/null 2>&1 && "$BIN_DIR/ngrok" --version 2>/dev/null | 
     echo -e "${CYAN}║${NC} ${PURPLE}Join CYBER SNIPPER for more tools and updates!${NC}  ${CYAN}║${NC}"
     echo -e "${CYAN}║${NC} ${PURPLE}Opening https://t.me/cyber_snipper...${NC}           ${CYAN}║${NC}"
     echo -e "${CYAN}╚═══════════════════════════════════════════════════╝${NC}"
-    termux-open-url https://t.me/cyber_snipper 2>>"$LOG_FILE" &
-    pid=$!
-    loading_animation $pid "Connecting to Telegram"
-    wait $pid
+    if ! pkg install termux-api -y 2>>"$LOG_FILE" || ! termux-open-url https://t.me/cyber_snipper 2>>"$LOG_FILE"; then
+        echo -e "${YELLOW}Warning: Failed to open Telegram link. Visit https://t.me/cyber_snipper manually.${NC}"
+    fi
+    loading_animation 5 "Connecting to Telegram"
 else
     echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
     echo -e "${RED}║${NC} ${WHITE}Error: ngrok installation failed!${NC}        ${RED}║${NC}"
