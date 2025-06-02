@@ -1,8 +1,8 @@
 # 🚀 Ngrok Termux Installer
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/Resonex/ngrok-termux-installer?color=cyan&style=flat-square)
-![GitHub license](https://img.shields.io/github/license/Resonex/ngrok-termux-installer?color=yellow&style=flat-square)
-![GitHub stars](https://img.shields.io/github/stars/Resonex/ngrok-termux-installer?color=lightgreen&style=flat-square)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/Resonex/ngrok?color=cyan&style=flat-square)
+![GitHub license](https://img.shields.io/github/license/Resonex/ngrok?color=yellow&style=flat-square)
+![GitHub stars](https://img.shields.io/github/stars/Resonex/ngrok?color=lightgreen&style=flat-square)
 ![Join CYBER SNIPPER](https://img.shields.io/badge/Telegram-Join%20CYBER%20SNIPPER-purple?style=flat-square&logo=telegram)
 
 Welcome to the **Ngrok Termux Installer**, a cutting-edge script for installing [ngrok](https://ngrok.com) in Termux with a futuristic, user-friendly interface. Crafted by **Resonex** and powered by **Joker**. 🚀
@@ -24,7 +24,7 @@ Built for 2025, this script transforms ngrok installation into an engaging proce
 
 ## 🎥 Demo
 
-Experience the installer’s modern UI with this ASCII representation (screenshots coming soon):
+(screenshots coming soon):
 
 ```
 ╔══════════════════════════════════════════════════════╗
@@ -46,7 +46,7 @@ Testing network [100%] ✓
 Preparing dependencies [ 45%] ⠹
 ```
 
-> **Note**: Run the script in Termux to see live animations and vibrant colors!
+> **Note**: Run the script in Termux!
 
 ## 📦 Installation Commands
 
