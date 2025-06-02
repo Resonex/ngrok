@@ -2,7 +2,7 @@
 
 # Script to install ngrok in Termux with authtoken configuration
 # Credits: Resonex for the original script and banner inspiration
-# Version: 1.1.5
+# Version: 1.1.6
 
 # Debug mode (set DEBUG=1 to enable)
 [ "$DEBUG" = "1" ] && set -x
@@ -66,34 +66,12 @@ check_internet() {
     fi
 }
 
-# Check package manager status
-check_pkg_manager() {
-    echo -e "${CYAN}Checking package manager...${NC}" | tee -a "$LOG_FILE"
-    if [ -f "/data/data/com.termux/files/usr/var/lib/dpkg/lock-frontend" ]; then
-        echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
-        echo -e "${RED}║${NC} ${WHITE}Error: Package manager is locked!${NC}        ${RED}║${NC}"
-        echo -e "${RED}║${NC} ${WHITE}Run 'rm /data/data/com.termux/files/usr/var/lib/dpkg/lock-frontend' as root.${NC} ${RED}║${NC}"
-        echo -e "${RED}╚════════════════════════════════════════════╝${NC}"
-        echo "Package manager locked" >> "$LOG_FILE"
-        exit 1
-    fi
-    if ! pkg update -y 2>>"$LOG_FILE"; then
-        echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
-        echo -e "${RED}║${NC} ${WHITE}Error: Package manager update failed!${NC}    ${RED}║${NC}"
-        echo -e "${RED}║${NC} ${WHITE}Check $LOG_FILE and ensure repositories are accessible.${NC} ${RED}║${NC}"
-        echo -e "${RED}╚════════════════════════════════════════════╝${NC}"
-        echo "Package manager update failed" >> "$LOG_FILE"
-        exit 1
-    fi
-    loading_animation 5 "Checking pkg manager"
-}
-
 # Clear terminal
 clear
 
 # Welcome screen with enhanced banner
 echo -e "${CYAN}╔══════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║${NC} ${WHITE}       NGROK TERMUX INSTALLER v1.1.5 by xAI        ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC} ${WHITE}       NGROK TERMUX INSTALLER v1.1.6 by xAI        ${NC} ${CYAN}║${NC}"
 echo -e "${CYAN}╠══════════════════════════════════════════════════════╣${NC}"
 echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ███╗   ██╗ ██████╗ ██████╗  ██████╗ ██╗  ██╗   ${NC} ${CYAN}║${NC}"
 echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ████╗  ██║██╔════╝ ██╔══██╗██╔═══██╗██║ ██╔╝   ${NC} ${CYAN}║${NC}"
@@ -105,7 +83,7 @@ echo -e "${CYAN}╠════════════════════�
 echo -e "${CYAN}║${NC} ${YELLOW}     Crafted by Resonex • Powered by xAI • 2025     ${NC} ${CYAN}║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "${GREEN}Initializing ngrok installation...${NC} ${PURPLE}[10:58 AM WAT, June 02, 2025]${NC}" | tee -a "$LOG_FILE"
+echo -e "${GREEN}Initializing ngrok installation...${NC} ${PURPLE}[11:04 AM WAT, June 02, 2025]${NC}" | tee -a "$LOG_FILE"
 echo ""
 
 # Check internet before proceeding
@@ -120,20 +98,32 @@ if [ -z "$PREFIX" ] || [ ! -d "$PREFIX" ] || [ "$PREFIX" != "/data/data/com.term
     exit 1
 fi
 
-# Check package manager
-check_pkg_manager
-
-# Install dependencies
+# Install dependencies with retry logic
 echo -e "${CYAN}Installing dependencies...${NC}" | tee -a "$LOG_FILE"
-for cmd in "upgrade -y" "install wget unzip -y"; do
+for cmd in "update -y" "upgrade -y" "install wget unzip -y"; do
     echo "Running pkg $cmd" >> "$LOG_FILE"
-    if ! pkg $cmd 2>>"$LOG_FILE"; then
-        echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
-        echo -e "${RED}║${NC} ${WHITE}Error: Failed to $cmd!${NC}                  ${RED}║${NC}"
-        echo -e "${RED}║${NC} ${WHITE}Check $LOG_FILE for details.${NC}          ${RED}║${NC}"
-        echo -e "${RED}╚════════════════════════════════════════════╝${NC}"
-        exit 1
-    fi
+    retries=2
+    while [ $retries -gt 0 ]; do
+        if pkg $cmd 2>>"$LOG_FILE"; then
+            break
+        else
+            echo "Failed pkg $cmd, retrying ($retries attempts left)" >> "$LOG_FILE"
+            sleep 2
+            ((retries--))
+            if [ $retries -eq 0 ]; then
+                # Clear cache as a last resort
+                echo "Clearing apt cache" >> "$LOG_FILE"
+                rm -rf /data/data/com.termux/files/usr/var/cache/apt/archives/* 2>>"$LOG_FILE"
+                if ! pkg $cmd 2>>"$LOG_FILE"; then
+                    echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
+                    echo -e "${RED}║${NC} ${WHITE}Error: Failed to $cmd!${NC}                  ${RED}║${NC}"
+                    echo -e "${RED}║${NC} ${WHITE}Check $LOG_FILE for details.${NC}          ${RED}║${NC}"
+                    echo -e "${RED}╚════════════════════════════════════════════╝${NC}"
+                    exit 1
+                fi
+            fi
+        fi
+    done
     loading_animation 10 "Installing $cmd"
 done
 
