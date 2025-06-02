@@ -21,14 +21,13 @@ Built for 2025, this script transforms ngrok installation into an engaging proce
 - [📜 License](#-license)
 - [🙌 Acknowledgments](#-acknowledgments)
 
-
 ## 🎥 Demo
 
 (screenshots coming soon):
 
 ```
 ╔══════════════════════════════════════════════════════╗
-║       NGROK TERMUX INSTALLER v1.1.2 by xAI        ║
+║       NGROK TERMUX INSTALLER v1.1.2 by Joker         ║
 ╠══════════════════════════════════════════════════════╣
 ║   ███╗   ██╗ ██████╗ ██████╗  ██████╗ ██╗  ██╗   ║
 ║   ████╗  ██║██╔════╝ ██╔══██╗██╔═══██╗██║ ██╔╝   ║
@@ -72,11 +71,14 @@ chmod +x ngrok.sh
 ## 🛠️ Setup
 
 ### Prerequisites
+
 - **Termux**: Installed on an Android device ([F-Droid](https://f-droid.org)).
 - **Internet Connection**: Required for downloading ngrok.
 
 ### Steps
+
 1. **Install Termux Dependencies**:
+
    ```bash
    pkg update && pkg upgrade
    pkg install termux-api
@@ -91,11 +93,13 @@ chmod +x ngrok.sh
 ## 📖 Usage
 
 After installation, start ngrok with:
+
 ```bash
 ngrok
 ```
 
 If you skipped the authtoken, configure it later:
+
 ```bash
 ngrok authtoken <your-authtoken>
 ```
@@ -106,7 +110,6 @@ Join [CYBER SNIPPER](https://t.me/cyber_snipper) for tips, updates, and more too
 
 - **Termux Environment**: Must be run in Termux (`/data/data/com.termux/files/usr`).
 - **Packages**: `wget`, `unzip`, `termux-api` (installed by the script).
-- **Architecture**: ARM by default (modify `NGROK_URL` for other architectures; see [ngrok downloads](https://ngrok.com/download)).
 - **Permissions**: Grant storage permissions if needed:
   ```bash
   termux-setup-storage
