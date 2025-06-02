@@ -2,7 +2,7 @@
 
 # Script to install ngrok in Termux with authtoken configuration
 # Credits: Resonex for the original script and banner inspiration
-# Version: 1.1.4
+# Version: 1.1.5
 
 # Debug mode (set DEBUG=1 to enable)
 [ "$DEBUG" = "1" ] && set -x
@@ -20,6 +20,7 @@ PURPLE='\033[0;35m'
 LIGHT_CYAN='\033[1;36m'
 LIGHT_GREEN='\033[1;32m'
 WHITE='\033[1;37m'
+BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 # Log file for debugging
@@ -51,7 +52,11 @@ loading_animation() {
 # Check internet connectivity
 check_internet() {
     echo -e "${CYAN}Checking internet connection...${NC}" | tee -a "$LOG_FILE"
-    if ! curl -s --connect-timeout 5 https://google.com >/dev/null 2>>"$LOG_FILE"; then
+    if curl -s --connect-timeout 5 https://google.com >/dev/null 2>>"$LOG_FILE"; then
+        echo -e "${GREEN}${BOLD}Connected${NC}" | tee -a "$LOG_FILE"
+        loading_animation 5 "Testing network"
+    else
+        echo -e "${RED}${BOLD}Network Error${NC}" | tee -a "$LOG_FILE"
         echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
         echo -e "${RED}║${NC} ${WHITE}Error: No internet connection detected!${NC}   ${RED}║${NC}"
         echo -e "${RED}║${NC} ${WHITE}Please check your network and try again.${NC} ${RED}║${NC}"
@@ -59,7 +64,6 @@ check_internet() {
         echo "Internet check failed" >> "$LOG_FILE"
         exit 1
     fi
-    loading_animation 10 "Testing network"
 }
 
 # Check package manager status
@@ -73,35 +77,35 @@ check_pkg_manager() {
         echo "Package manager locked" >> "$LOG_FILE"
         exit 1
     fi
-    if ! pkg update -y 2>>"$LOG_FILE" 1>/dev/null; then
+    if ! pkg update -y 2>>"$LOG_FILE"; then
         echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
         echo -e "${RED}║${NC} ${WHITE}Error: Package manager update failed!${NC}    ${RED}║${NC}"
         echo -e "${RED}║${NC} ${WHITE}Check $LOG_FILE and ensure repositories are accessible.${NC} ${RED}║${NC}"
-        echo -e ${RED}╚════════════════════════════════════════════╝${NC}"
+        echo -e "${RED}╚════════════════════════════════════════════╝${NC}"
         echo "Package manager update failed" >> "$LOG_FILE"
         exit 1
     fi
-    loading_animation 10 "Checking pkg manager"
+    loading_animation 5 "Checking pkg manager"
 }
 
 # Clear terminal
 clear
 
 # Welcome screen with enhanced banner
-echo -e "${CYAN}╔═══════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║${NC}${WHITE}       NGROK TERMUX INSTALLER v1.1.0 by xAI       ${NC}${CYAN}║${NC}"
-echo -e "${CYAN}╠═══════════════════════════════════════════════╣${NC}"
-echo -e "${CYAN}║${NC}${LIGHT_CYAN}   ███╗   ██╗ ██████╗ ██████╗██╗ ███████╗███╗  ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}   ████╗  ██║██╔════╝ ██╔══██╗██╔═════╝███╗███╗  ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}${LIGHT_CYAN}   ██╔██╗ ██║██║  ███╗██████╗███╗███╗███║██║   ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ██║╚██╗██║██║   ██║██╔══██╗██║════╝███║██║   ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${LIGHT_CYAN}   ██║ ╚████║╚██████╔╝██║  ██║╚══════╝╚═╝ ██╗  ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ╚═╝  ╚═══╝ ╚══════╝ ╚═╝  ╚═╝         ╚═════╝  ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}╠═══════════════════════════════════════════════╣${NC}"
-echo -e "${CYAN}║${NC} ${YELLOW}     Crafted by Resonex • Powered by xAI • 2025    ${NC} ${CYAN}║${NC}"
-echo -e "${CYAN}╚═══════════════════════════════════════════════╝${NC}"
+echo -e "${CYAN}╔══════════════════════════════════════════════════════╗${NC}"
+echo -e "${CYAN}║${NC} ${WHITE}       NGROK TERMUX INSTALLER v1.1.5 by xAI        ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}╠══════════════════════════════════════════════════════╣${NC}"
+echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ███╗   ██╗ ██████╗ ██████╗  ██████╗ ██╗  ██╗   ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ████╗  ██║██╔════╝ ██╔══██╗██╔═══██╗██║ ██╔╝   ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ██╔██╗ ██║██║  ███╗██████╔╝██║   ██║█████╔╝    ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ██║╚██╗██║██║   ██║██╔══██╗██║   ██║██╔═██╗    ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ██║ ╚████║╚██████╔╝██║  ██║╚██████╔╝██║  ██╗   ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC} ${LIGHT_CYAN}   ╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝   ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}╠══════════════════════════════════════════════════════╣${NC}"
+echo -e "${CYAN}║${NC} ${YELLOW}     Crafted by Resonex • Powered by xAI • 2025     ${NC} ${CYAN}║${NC}"
+echo -e "${CYAN}╚══════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "${GREEN}Initializing ngrok installation...${NC} ${PURPLE}[10:52 AM WAT, June 02, 2025]${NC}" | tee -a "$LOG_FILE"
+echo -e "${GREEN}Initializing ngrok installation...${NC} ${PURPLE}[10:58 AM WAT, June 02, 2025]${NC}" | tee -a "$LOG_FILE"
 echo ""
 
 # Check internet before proceeding
@@ -142,7 +146,8 @@ BIN_DIR="$PREFIX/bin"
 if [ ! -w "$HOME" ] || [ ! -w "$BIN_DIR" ]; then
     echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
     echo -e "${RED}║${NC} ${WHITE}Error: No write permission for $HOME or $BIN_DIR!${NC} ${RED}║${NC}"
-    echo -e "${RED}╚═════${NC} ${WHITE}Run 'termux-setup-storage' or check permissions.═════${NC}╝${NC}"
+    echo -e "${RED}║${NC} ${WHITE}Run 'termux-setup-storage' or check permissions.${NC} ${RED}║${NC}"
+    echo -e "${RED}╚════════════════════════════════════════════╝${NC}"
     echo "Permission error: HOME=$HOME, BIN_DIR=$BIN_DIR" >> "$LOG_FILE"
     exit 1
 fi
@@ -195,7 +200,7 @@ echo -e "${CYAN}╔═════════════════ Authtoken
 echo -e "${CYAN}║${NC} ${GREEN}Ngrok requires an authtoken to unlock features${NC} ${CYAN}║${NC}"
 echo -e "${CYAN}║${NC} ${PURPLE}Visit https://dashboard.ngrok.com for your token${NC} ${CYAN}║${NC}"
 echo -e "${CYAN}╚═══════════════════════════════════════════════════╝${NC}"
-read -p "$(echo -e ${YELLOW}Enter authtoken [Enter to skip]:${NC} ) " NGROK_AUTH
+read -p "${YELLOW}Enter authtoken [Enter to skip]:${NC} " NGROK_AUTH
 if [ -n "$NGROK_AUTH" ]; then
     if ! "$BIN_DIR/ngrok" authtoken "$NGROK_AUTH" 2>>"$LOG_FILE"; then
         echo -e "${RED}╔════════════════════════════════════════════╗${NC}"
