@@ -21,24 +21,32 @@ RAINBOW=($RED $YELLOW $GREEN $CYAN $BLUE $MAGENTA)
 # Function to print banner with rainbow colors
 print_banner() {
     local text=(
-        "███╗   ██╗ ██████╗ ██████╗  ██████╗ ██╗  ██╗"
-        "████╗  ██║██╔════╝ ██╔══██╗██╔═══██╗██║ ██╔╝"
-        "██╔██╗ ██║██║  ███╗██████╔╝██║   ██║█████╔╝"
-        "██║╚██╗██║██║   ██║██╔══██╗██║   ██║██╔═██╗"
-        "██║ ╚████║╚██████╔╝██║  ██║╚██████╔╝██║  ██╗"
-        "╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝"
+        "███╗   ██╗ ██████╗ ██████╗  ██████╗ ██╗  ██╗ "
+        "████╗  ██║██╔════╝ ██╔══██╗██╔═══██╗██║ ██╔╝ "
+        "██╔██╗ ██║██║  ███╗██████╔╝██║   ██║█████╔╝  "
+        "██║╚██╗██║██║   ██║██╔══██╗██║   ██║██╔═██╗  "
+        "██║ ╚████║╚██████╔╝██║  ██║╚██████╔╝██║  ██╗ "
+        "╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝ "
     )
-    echo -e "${CYAN}╔══════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║${NC} ${WHITE}       NGROK TERMUX INSTALLER v2.0.0               ${NC} ${CYAN}║${NC}"
-    echo -e "${CYAN}╠══════════════════════════════════════════════════════╣${NC}"
+    echo -e "${CYAN}╔═══════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║${NC} ${WHITE}       NGROK TERMUX INSTALLER v1.0.0         ${NC} ${CYAN}║${NC}"
+    echo -e "${CYAN}╠═══════════════════════════════════════════════╣${NC}"
     for i in "${!text[@]}"; do
         color=${RAINBOW[$((i % ${#RAINBOW[@]}))]}
         echo -e "${CYAN}║${NC} ${color}${text[i]}${NC} ${CYAN}║${NC}"
     done
-    echo -e "${CYAN}╠══════════════════════════════════════════════════════╣${NC}"
-    echo -e "${CYAN}║${NC} ${YELLOW}     Crafted by Resonex                             ${NC} ${CYAN}║${NC}"
-    echo -e "${CYAN}╚══════════════════════════════════════════════════════╝${NC}"
+    echo -e "${CYAN}╠═══════════════════════════════════════════════╣${NC}"
+    echo -e "${CYAN}║${NC} ${YELLOW}     Crafted by Resonex and Spiccy           ${NC} ${CYAN}║${NC}"
+    echo -e "${CYAN}╚═══════════════════════════════════════════════╝${NC}"
     echo ""
+}
+
+
+# Stylish Section Header
+section() {
+    echo -e "${MAGENTA}╭─────────────────────────────────────────────╮${NC}"
+    echo -e "${MAGENTA}│${NC}  $1"
+    echo -e "${MAGENTA}╰─────────────────────────────────────────────╯${NC}"
 }
 
 # Function to display a spinner
@@ -68,19 +76,23 @@ clear
 print_banner
 
 # Check for internet connection
-echo -e "${BLUE}🌐 Checking internet connection...${NC}"
+section "${BLUE}🌐 Checking internet connection...${NC}"
 if ! ping -c 1 google.com &>/dev/null; then
-    echo -e "${RED}❌ No internet connection. Please check your connection and try again.${NC}"
+    clear
+    print_banner
+    section "${RED}No Internet detected."
     exit 1
 fi
-echo -e "${GREEN}✅ Internet connection is active.${NC}"
+clear
+print_banner
+section "${GREEN}🌐 Internet connection active ${NC}"
 
 # Install required packages
-echo -e "${BLUE}📦 Installing required packages...${NC}"
+section "${BLUE}📦 Installing required packages...${NC}"
 pkg install -y wget unzip termux-api &>/dev/null
 
 # Download Ngrok
-echo -e "${BLUE}📥 Downloading Ngrok...${NC}"
+section "${BLUE}📥 Downloading Ngrok...${NC}"
 ARCH=$(uname -m)
 case $ARCH in
     aarch64)
@@ -99,7 +111,7 @@ case $ARCH in
 esac
 
 wget -q "$NGROK_URL" -O ngrok.tgz
-echo -e "${GREEN}✅ Ngrok downloaded successfully.${NC}"
+section "${GREEN}✅ Ngrok downloaded successfully.${NC}"
 
 # Extract Ngrok
 echo -e "${BLUE}🧩 Extracting Ngrok...${NC}"
@@ -107,11 +119,14 @@ tar -xzf ngrok.tgz
 chmod +x ngrok
 mv ngrok $PREFIX/bin/
 rm ngrok.tgz
-echo -e "${GREEN}✅ Ngrok installed successfully.${NC}"
+section "${GREEN}✅ Ngrok installed successfully.${NC}"
 
 # Prompt for authtoken
-echo -e "${YELLOW}🔐 To use Ngrok, you need to set your authtoken.${NC}"
-echo -e "${YELLOW}   You can find your authtoken at: https://dashboard.ngrok.com/get-started/your-authtoken${NC}"
+echo -e "${CYAN}╔═════════════════ ${YELLOW}Authtoken Setup${NC} ═════════════════╗${NC}"
+echo -e "${CYAN}║${NC}${MAGENTA}Set your authtoken.${NC}"
+echo -e "${CYAN}║${NC}${MAGENTA}You can find your authtoken at: https://dashboard.ngrok.com/${NC}"
+echo -e "${CYAN}╚═══════════════════════════════════════════════════╝${NC}"
+termux-open-url https://dashboard.ngrok.com &>/dev/null
 read -p "Enter your Ngrok authtoken (or leave blank to skip): " NGROK_AUTH
 
 if [ -n "$NGROK_AUTH" ]; then
@@ -126,9 +141,11 @@ else
     echo -e "${WHITE}    ngrok config add-authtoken <your-token>${NC}"
 fi
 
+clear
+print_banner
 # Open Ngrok dashboard
-echo -e "${BLUE}🌐 Opening Ngrok dashboard in your browser...${NC}"
-termux-open-url https://dashboard.ngrok.com &>/dev/null
+section "${BLUE}🌐 Join My channel if you want to learn hacking...${NC}"
+termux-open-url https://t.me/cyber_snipper &>/dev/null
 
-echo -e "${GREEN}🎉 Ngrok installation and setup complete!${NC}"
-echo -e "${GREEN}🚀 You can now use Ngrok by running: ${WHITE}ngrok http 8080${NC}"
+section "${GREEN}🎉 Ngrok installation and setup complete!${NC}"
+section "${GREEN}🚀 You can now use Ngrok by running: ${WHITE}ngrok http 8080${NC}"
